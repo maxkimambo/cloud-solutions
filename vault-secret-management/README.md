@@ -70,7 +70,7 @@ Define roles for your project. Here's an example binding that allows managing GC
     }
 ```
 
-> **Note:** You can find more examples in the `bindings` folder.
+> **Note:** You can find more examples in the `role-bindings` folder.
 
 ## 8. Define RoleSets
 
