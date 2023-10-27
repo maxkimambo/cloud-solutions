@@ -1,0 +1,116 @@
+Start vault server 
+    vault server -config=/etc/vault.d/vault.hcl &
+    sudo chown -R kimambo:kimambo /opt/vault/data/
+
+    export VAULT_ADDR='http://127.0.0.1:8200'
+
+
+Initialize vault (only once)
+
+    vault operator init
+
+
+This generates the unseal keys and root token 
+
+Unseal Key 1: 4rH+x2nXFscwVoodjFNhAvCkmrNlA0tCD4KphOSAcFdB
+Unseal Key 2: l/Bv2niok5HUGPlGh6aNjsK/aNzEb/PqxjkjrCc2GPH6
+Unseal Key 3: 9Vz+ebBvnW7Cfb2MuesAPUf9swYqZzjjVndu2ATDHnB9
+Unseal Key 4: TmUjOLS+7gO9xHxqQgm2PDm+2TvrdrREYI8lrhJGnNEI
+Unseal Key 5: ZoSCyCoZbe4FfdZXuMhJnTVt+ZVwhiC2WVziTWeN5YB3
+
+Initial Root Token: hvs.bMww1j4XEgqDOJzPOiskMOYK
+
+
+vault operator unseal
+
+Login with the root token 
+    
+    vault login 
+
+Provide any of 3 unseal keys above 
+
+
+Enable GCP secrets engine
+
+    vault secrets enable gcp
+
+Generating secrets using vault 
+
+To setup the secrets engine 
+
+vault write gcp/config ttl=120 max_ttl=86400
+
+Create bindings 
+
+            resource "buckets/my-bucket" {
+                roles = [
+                    "roles/storage.objectAdmin",
+                    "roles/storage.legacyBucketReader",
+                ]
+            }
+
+            # At instance level, using self-link
+            resource "https://www.googleapis.com/compute/v1/projects/my-project/zone/my-zone/instances/my-instance" {
+            roles = [
+                    "roles/compute.instanceAdmin.v1"
+                ]
+            }
+
+            # At project level
+            resource "//cloudresourcemanager.googleapis.com/projects/my-project" {
+                roles = [
+                    "roles/compute.instanceAdmin.v1",
+                    "roles/iam.serviceAccountUser",  # required if managing instances that run as service accounts
+                ]
+            }
+
+            # At folder level
+            resource "//cloudresourcemanager.googleapis.com/folders/123456" {
+                roles = [
+                    "roles/compute.viewer",
+                    "roles/deploymentmanager.viewer",
+                ]
+            }
+
+Create respective rolesets 
+
+    vault write gcp/roleset/bucket-admin-role \
+        project="kimambo-sandbox" \
+        secret_type="service_account_key" \
+        bindings=@bucket_admin_binding.hcl
+
+
+    vault write gcp/roleset/project-bucket-admin-role \
+        project="kimambo-sandbox" \
+        secret_type="service_account_key" \
+        bindings=@bucket_admin_project_binding.hcl
+
+    vault write gcp/roleset/compute-instance-admin-role \
+        project="kimambo-sandbox" \
+        secret_type="service_account_key" \
+        bindings=@compute_instance_admin_binding.hcl
+
+    vault write gcp/roleset/compute-instance-admin-gs-role \
+        project="kimambo-sandbox" \
+        secret_type="service_account_key" \
+        bindings=@multiple_roles_binding.hcl
+
+    vault write gcp/roleset/network-admin-role \
+        project="kimambo-sandbox" \
+        secret_type="service_account_key" \
+        bindings=@network_admin_binding.hcl
+
+
+Dynamically generating Service account keys with necessary permissions
+
+    To generate a service account key
+        vault read gcp/roleset/bucket-admin-role/key
+        vault read gcp/roleset/project-bucket-admin-role/key
+        vault read gcp/roleset/compute-instance-admin-role/key
+        vault read gcp/roleset/compute-instance-admin-gs-role/key
+        vault read gcp/roleset/network-admin-role/key 
+
+Demo password auth account 
+
+    Username : max 
+    password : #&l8%UaZBd9hUa8!

@@ -1,0 +1,44 @@
+Authenticating 
+
+Get the credentials or add path to the service account under the environment variable GOOGLE_APPLICATION_CREDENTIALS
+
+    gcloud auth application-default login
+
+
+
+Accessing Bastion Host that is behind IAP and has no public IP. 
+
+gcloud compute ssh bastion --zone=europe-west3-a --tunnel-through-iap
+
+
+Find the instance name 
+
+    gcloud sql instances list
+
+Get the connection info 
+
+    gcloud sql instances describe ard-demo-d051 --format="value(connectionName)"
+
+    result:
+        kimambo-sandbox:europe-west3:ard-demo-d051
+
+
+Using the proxy you will need 
+
+    cloudsql.instances.connect 
+
+On the bastion host run cloud proxy to
+  cloud-sql-proxy --port 3307 kimambo-sandbox:europe-west3:ard-demo-d051 --private-ip
+
+start iap tunnel to mysql 
+
+    gcloud compute start-iap-tunnel bastion 3307 \
+        --local-host-port=localhost:3306 \
+        --zone=europe-west3-a
+
+
+      
+
+ gcloud compute start-iap-tunnel bastion 3307 \
+        --local-host-port=localhost:3306 \
+        --region=europe-west3  --iap-tunnel-disable-connection-check
