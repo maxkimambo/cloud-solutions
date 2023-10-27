@@ -1,132 +1,138 @@
-# Establishing a connection to a private Cloud SQL
+# Connecting to a Private Cloud SQL Instance
 
-Here we will describe the process of establishing a connection to a private Cloud SQL instance from a local machine, 
-for development or administration purposes. 
+This guide details the steps required to establish a connection to a private Cloud SQL instance from a local machine, which is essential for development or administrative tasks.
 
 ## Pre-requisites
 
-    - Cloud Nat is present in the VPC to allow the bastion host to access the internet
-    - You have the following tools installed on your local machine
-        - Terraform
-        - gcloud
-        - mysql client
-    - Neccessary roles and permission to create the resources
-    - A role to access the Cloud SQL instance (cloudsql.instances.connect role)
-  
-## Architecture
+Before you proceed, ensure the following:
 
-The terraform code in this repository creates the following resources
+- A Cloud NAT is set up in the VPC, enabling the bastion host's internet access.
+- Your local machine has the subsequent tools installed:
+  - Terraform
+  - gcloud
+  - mysql client
+- Adequate roles and permissions to create the required resources.
+- A role to access the Cloud SQL instance, specifically the `cloudsql.instances.connect` role.
 
-    - A VPC network
-    - A subnet
-    - A Cloud SQL instance with private IP
-    - A bastion host with a private IP
-    - Firewall rules to allow SSH access and mysql client access through Identity Aware Proxy (IAP)
-    - VPC peering between the ard-demo VPC and the cloudSQL Google managed VPC
+## Architecture Overview
 
-This is the most common setup scenario of accessing CloudSQL. SQL server will be accessible by all hosts in this VPC.
+Utilizing the terraform code from this repository will facilitate the creation of:
 
-## Steps
+- A VPC network.
+- A subnet.
+- A Cloud SQL instance using a private IP.
+- A bastion host with a private IP.
+- Firewall rules permitting SSH and mysql client access through Identity Aware Proxy (IAP).
+- VPC peering between the 'ard-demo' VPC and the CloudSQL Google-managed VPC.
 
-1. Clone this repository
+This represents a typical setup for accessing CloudSQL. In this configuration, the SQL server becomes accessible to all hosts within the VPC.
 
-2. Initialize terraform providers
+## Setup Procedure
 
-    `terraform init --upgrade`
+1. **Clone the Repository**
 
-3. Authenticate gcloud
+    ```bash
+    git clone [repository-link]
+    ```
 
-    `gcloud auth application-default login`
+2. **Initialize Terraform Providers**
 
-    or 
+    ```bash
+    terraform init --upgrade
+    ```
 
-    set the environment variable GOOGLE_APPLICATION_CREDENTIALS to point to a service account key file to be used for installation
+3. **Authenticate with gcloud**
 
-4. Create the resources
-   
-     `terraform apply`
+    You can either:
 
-5. Once successfully applied you should see the resources created in the GCP console
-
-    Cloud SQL instance
-
-    ![Sql](image.png)
+    ```bash
+    gcloud auth application-default login
+    ```
     
-    Private Bastion host
+    Or set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to direct it to a specific service account key file.
 
-   ![Bastion](image-1.png)
+4. **Resource Creation**
 
-    Identity Aware Proxy
+    ```bash
+    terraform apply
+    ```
 
-    ![IAP](image-3.png)
+    Post successful application, you can view the created resources within the GCP console:
 
-6. Access Bastion Host
+    - Cloud SQL Instance: ![Sql](image.png)
+    - Private Bastion Host: ![Bastion](image-1.png)
+    - Identity Aware Proxy: ![IAP](image-3.png)
 
-   To access bastion host that has no external ip we will need to tunnell the traffic through IAP. 
+5. **Bastion Host Access**
 
-    `gcloud compute ssh bastion --zone=europe-west3-a --tunnel-through-iap`
+    To connect to a bastion host without an external IP, traffic should be tunneled via IAP:
 
-7. Find Cloud SQL instance information 
-    
-    `gcloud sql instances list`
+    ```bash
+    gcloud compute ssh bastion --zone=europe-west3-a --tunnel-through-iap
+    ```
 
-    Get the connection info:    
+6. **Retrieve Cloud SQL Instance Info**
 
-    `gcloud sql instances describe ard-demo-d051 --format="value(connectionName)"`
+    List instances:
 
-    result: 
+    ```bash
+    gcloud sql instances list
+    ```
 
-     `kimambo-sandbox:europe-west3:ard-demo-d051`
+    To obtain connection details:
 
-8. Start Cloud SQL Proxy
+    ```bash
+    gcloud sql instances describe ard-demo-d051 --format="value(connectionName)"
+    ```
 
-    `cloud_sql_proxy -instances=ard-demo:europe-west3:ard-demo-mysql`
+    You should receive a result similar to: `kimambo-sandbox:europe-west3:ard-demo-d051`
 
-    At this point the bastion host is ready to accept connections and forward them to the Cloud SQL instance
-    Test the connection to the Cloud SQL instance from the bastion host. 
+7. **Activate Cloud SQL Proxy**
 
-    `mysql -h127.0.0.1 --port3306 -u root -p`
+    ```bash
+    cloud_sql_proxy -instances=ard-demo:europe-west3:ard-demo-mysql
+    ```
 
-    If you are able to connect to the Cloud SQL instance from the bastion host then you are ready to connect from your local machine.
+    At this juncture, the bastion host is prepped to accept and forward connections to the Cloud SQL instance. Validate the connection:
 
-9. Connect from local machine
+    ```bash
+    mysql -h127.0.0.1 --port3306 -u root -p
+    ```
 
-   To connect from local machine to the bastion host, we shall rely on tunneling capabilities of IAP.
+    If successful, you're set to connect via your local machine.
 
-    `gcloud compute start-iap-tunnel bastion 3306 --local-host-port=localhost:3306 --zone=europe-west3-a`
+8. **Local Machine Connection**
 
-    This creates a tunnel between your local machine and the bastion host, listening on port 3306 on your local machine
-    and forwarding that traffic to the bastion host on port 3306 (on which the Cloud SQL proxy is listening)
-    Thus creating a tunnel between your local machine and the Cloud SQL instance.
+    Utilize the IAP's tunneling capabilities:
 
-10. Connect to the Cloud SQL instance from your local machine
+    ```bash
+    gcloud compute start-iap-tunnel bastion 3306 --local-host-port=localhost:3306 --zone=europe-west3-a
+    ```
 
-    `mysql -h127.0.0.1 --port3306 -u root -p`
+    This command establishes a tunnel between your local machine and the bastion host. Subsequently, you can connect to the Cloud SQL instance:
 
-    You should be able to connect to the Cloud SQL instance from your local machine.
+    ```bash
+    mysql -h127.0.0.1 --port3306 -u root -p
+    ```
 
-    IAP automatically disconnects sessions after 1 hour of inactivity.
-    We recommend having logic in your applications to handle reestablishing a tunnel when it becomes disconnected.
+    Note: IAP disconnects after 1-hour of inactivity. Ensure your applications are equipped to reinitiate tunnels when needed. For this demonstration, we used Beekeeper Studio as GUI client to connect from local machine to CloudSQL:
 
-    Here we tested the connection from the local machine using Beekeeper Studio. 
+    ![Beekeeper](image-2.png)
 
-![Beekeeper](image-2.png)
+## Benefits:
 
-## Advantages of this approach
+- IP address whitelisting isn't required.
+- Avoids VPN connections.
+- Eliminates the need for an external IP bastion host.
+- The cloud sql proxy remains active on the bastion host, allowing users to create tunnels when granted access to the IAP destination.
 
-    - No need to whitelist IP addresses
-    - No need to create a VPN connection
-    - No need to create a bastion host with external IP
-    - The cloud sql proxy can be left running on the bastion host, 
-      users who require database access can be granted permissions to access IAP destination to be able to create tunnels.
+## Limitations:
 
-## Disadvantages of this approach
+- Due to IAP's 1-hour inactivity session timeout, ensure mechanisms are in place to manage tunnel reconnections.
+- This method isn't suited for extensive data transfers, making it inappropriate for data migration tasks.
 
-- IAP disconnects sessions after 1 hour of inactivity, so logic needs to be implemented to handle reestablishing a tunnel when it becomes disconnected.
-- IAP tunnels are not meant for big data transfers, so this approach is not suitable for data migration.
+## Additional Resources:
 
-## References
-
-- https://cloud.google.com/sql/docs/mysql/connect-instance-private-ip
-- https://cloud.google.com/sql/docs/mysql/connect-auth-proxy
-- https://cloud.google.com/iap/docs/using-tcp-forwarding
+- [Connecting to Cloud SQL with Private IP](https://cloud.google.com/sql/docs/mysql/connect-instance-private-ip)
+- [Using the Cloud SQL Auth Proxy](https://cloud.google.com/sql/docs/mysql/connect-auth-proxy)
+- [Using TCP Forwarding with IAP](https://cloud.google.com/iap/docs/using-tcp-forwarding)

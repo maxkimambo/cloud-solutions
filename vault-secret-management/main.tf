@@ -122,9 +122,10 @@ resource "google_compute_instance" "vault_server" {
         }
     }
 
+            
+
     
     metadata_startup_script = file("${path.module}/startup.sh")
-
     service_account {
         email  = google_service_account.vault-sa.email
         scopes = ["https://www.googleapis.com/auth/cloud-platform"]
@@ -134,7 +135,7 @@ resource "google_compute_instance" "vault_server" {
     lifecycle {
         ignore_changes = [metadata_startup_script] 
     }
-}
+  }
 
 #----------------------------------------------------
 #           Sample Storage Bucket                   #
