@@ -1,4 +1,4 @@
-# GCP Cloud demos & Solutions
+# GCP Demos & Solutions
 
 This repository contains demos and solutions for Google Cloud Platform (GCP)
 
