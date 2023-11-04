@@ -14,4 +14,4 @@ any manual steps to be done or pre-requisites before running.
 
 ### [Establishing connection from a local dev machine to a private ClodSQL instance](iap-cloud-sql/README.md)
 
-### [Vault Secret Management](vault/README.md)
+### [Vault Secret Management](vault-secret-management/README.md)
