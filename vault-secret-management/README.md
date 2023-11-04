@@ -108,20 +108,91 @@ RoleSets associate a set of roles with specific resources in GCP:
 Use the following commands to generate service account keys with the necessary permissions:
 
 ```bash
-  vault read gcp/roleset/bucket-admin-role/key | jq -r .data.private_key | base64 -d > bucket-admin-key.json
-  vault read gcp/roleset/project-bucket-admin-role/key | jq -r .data.private_key | base64 -d > project-bucket-admin-key.json
-  vault read gcp/roleset/compute-instance-admin-role/key | jq -r .data.private_key | base64 -d > compute-instance-admin-key.json
-  vault read gcp/roleset/compute-instance-admin-gs-role/key | jq -r .data.private_key | base64 -d > compute-instance-admin-gs-key.json
-  vault read gcp/roleset/network-admin-role/key | jq -r .data.private_key | base64 -d > network-admin-key.json
+  vault read gcp/roleset/bucket-admin-role/key --format=json | jq -r .data.private_key_data | base64 -d > bucket-admin-key.json
+  
+  vault read gcp/roleset/project-bucket-admin-role/key --format=json | jq -r .data.private_key_data | base64 -d > project-bucket-admin-key.json
+  
+  vault read gcp/roleset/compute-instance-admin-role/key --format=json | jq -r .data.private_key_data | base64 -d > compute-instance-admin-key.json
+  
+  vault read gcp/roleset/compute-instance-admin-gs-role/key --format=json | jq -r .data.private_key_data | base64 -d > compute-instance-admin-gs-key.json
+  
+  vault read gcp/roleset/network-admin-role/key --format=json | jq -r .data.private_key_data | base64 -d > network-admin-key.json
 ```
 
-## 10. Setup User Authentication
+## 10. Using static service accounts with dynamic keys
+
+Here we will use a static service account that was manually created via the GCP console. We will then generate a dynamic key for the service account. This key will then be managed by vault, and automatically deleted after the
+lease expires.
+
+### 10.1 Create a service account
+
+Created `bootstrap-user@kimambo-sandbox.iam.gserviceaccount.com`
+
+### 10.2 Create a role binding file
+
+```hcl
+    resource "//cloudresourcemanager.googleapis.com/projects/kimambo-sandbox" {
+        roles = ["roles/owner"]
+}
+```
+
+### 10.3 Apply role binding to the service account
+
+```bash
+    vault write gcp/static-account/bootstrap-user service_account_email="bootstrap-user@kimambo-sandbox.iam.gserviceaccount.com" secret_type="service_account_key" bindings=@static_sa_binding.hcl
+```
+
+    Success! Data written to: gcp/static-account/bootstrap-user
+
+### 10.4 Getting a dynamic service account key for the bootstrap user
+
+```bash
+    vault read gcp/static-account/bootstrap-user/key --format=json | jq -r .data.private_key_data | base64 -d > bootstrap-user-key.json
+```
+
+    Success! Data written to: gcp/static-account/bootstrap-user
+
+## 11. Using short lived OAuth 2.0 access token
+
+Lets create OAuth2 token role for the compute instance admin role. 
+This will allow us to generate short lived access tokens for the compute instance admin role.
+
+```bash
+
+    vault write gcp/roleset/compute-instance-admin-token-role project="kimambo-sandbox"\
+    secret_type="access_token" token_scopes="https://www.googleapis.com/auth/cloud-platform" \
+    bindings=@compute_instance_admin_binding.hcl
+
+```
+
+`
+  Success! Data written to: gcp/roleset/compute-instance-admin-token-role
+`
+
+
+### 11.2 Obtaining the token 
+
+  ``` bash 
+
+    vault read gcp/roleset/compute-instance-admin-token-role/token --format=json |jq -r .data.token > access_token.txt
+  
+  ```
+
+### 11.3 Using the token to authorize with GCP 
+  
+  Set the value of the token to CLOUDSDK_AUTH_ACCESS_TOKEN environment variable.
+
+  `export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat ./access_token.txt)`
+
+  When this variable is set, gcloud will use the token to authenticate with GCP.
+
+## 11. Setup User Authentication
 
 Enable the `userpass` authentication method and create a user:
 
 ```bash
-  vault auth enable userpass
-  vault write auth/userpass/users/max password=#&l8%UaZBd9hUa8! policies=dev-policy
+    vault auth enable userpass
+    vault write auth/userpass/users/max password=#&l8%UaZBd9hUa8! policies=dev-policy
 ```
 
 ### Set Demo User Credentials
@@ -133,3 +204,11 @@ Enable the `userpass` authentication method and create a user:
 
 Congratulations! You've successfully set up and configured Vault to manage your secrets in GCP.
 Ensure to keep your keys and tokens secure and only share them with trusted parties.
+
+
+
+
+## References 
+
+- https://cloud.google.com/sdk/docs/authorizing
+- https://cloud.google.com/iam/docs/create-short-lived-credentials-direct#gcloud
