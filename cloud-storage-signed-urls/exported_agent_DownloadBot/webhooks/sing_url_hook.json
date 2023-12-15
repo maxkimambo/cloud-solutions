@@ -1,0 +1,17 @@
+{
+  "name": "27bfce46-ac0a-426f-b602-1525acd9c9f1",
+  "displayName": "sing_url_hook",
+  "genericWebService": {
+    "uri": "https://url-signer-lgzjzj5d5a-uc.a.run.app/sign",
+    "webhookType": "FLEXIBLE",
+    "httpMethod": "POST",
+    "requestBody": "{ \n  \"bucket_name\":\"kimambo-cloud-store-chat-bot\", \n \"blob_name\":\"$intent.params.filename\", \n  \"expiration\": 3600 \n}",
+    "parameterMapping": [ {
+      "key": "url",
+      "value": "$.url"
+    } ]
+  },
+  "timeout": {
+    "seconds": 5
+  }
+}

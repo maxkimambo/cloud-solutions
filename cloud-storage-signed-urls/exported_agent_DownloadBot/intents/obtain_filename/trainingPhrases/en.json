@@ -1,0 +1,30 @@
+{
+  "trainingPhrases": [ {
+    "parts": [ {
+      "text": "can you get me "
+    }, {
+      "text": "python-cookbook.pdf",
+      "parameterId": "filename"
+    } ],
+    "repeatCount": 1,
+    "languageCode": "en"
+  }, {
+    "parts": [ {
+      "text": "The file i want is "
+    }, {
+      "text": "python.pdf",
+      "parameterId": "filename"
+    } ],
+    "repeatCount": 1,
+    "languageCode": "en"
+  }, {
+    "parts": [ {
+      "text": "name of the file is "
+    }, {
+      "text": "test.pdf",
+      "parameterId": "filename"
+    } ],
+    "repeatCount": 1,
+    "languageCode": "en"
+  } ]
+}

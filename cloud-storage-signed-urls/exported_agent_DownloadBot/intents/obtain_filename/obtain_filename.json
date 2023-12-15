@@ -1,0 +1,10 @@
+{
+  "name": "b0f08dc7-280a-44a1-bc5a-8547a1a01dcc",
+  "displayName": "obtain_filename",
+  "parameters": [ {
+    "id": "filename",
+    "entityType": "@filename"
+  } ],
+  "priority": 500000,
+  "numTrainingPhrases": 3
+}

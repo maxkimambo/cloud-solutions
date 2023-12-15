@@ -1,0 +1,32 @@
+{
+  "name": "6e4baabf-8ad0-4a66-bfd1-d23631ade263",
+  "displayName": "GetFileName",
+  "form": {
+    "parameters": [ {
+      "displayName": "filename",
+      "required": true,
+      "entityType": "@filename",
+      "fillBehavior": {
+        "initialPromptFulfillment": {
+        
+        }
+      }
+    } ]
+  },
+  "entryFulfillment": {
+    "setParameterActions": [ {
+      "parameter": "filename",
+      "value": "python.pdf"
+    } ]
+  },
+  "transitionRoutes": [ {
+    "intent": "obtain_filename",
+    "condition": "true",
+    "triggerFulfillment": {
+    
+    },
+    "targetPage": "sign_url",
+    "name": "e5c4230c-49c9-405d-b199-f9adc5e9ccb3"
+  } ],
+  "description": "Get filename from the user"
+}

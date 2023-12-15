@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download ChatBot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 1em 0;
+        }
+
+        .container {
+            width: 80%;
+            margin: 20px auto;
+        }
+
+        .download-section {
+            background-color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .chat-window {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-top : 400px;
+        }
+    </style>
+    <link rel="stylesheet"
+        href="https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/themes/df-messenger-default.css">
+</head>
+
+<body>
+    <div class="header">
+        <h1>Download Bot</h1>
+    </div>
+    <div class="container">
+        <div class="download-section">
+            <h2>Enter you wish in the chatbox.</h2>
+        </div>
+        <div class="chat-window">
+            <df-messenger location="us-central1" project-id="kimambo-sandbox"
+                agent-id="0b81cfdd-8bb0-4831-920a-5cf6207a68d8" language-code="en">
+                <df-messenger-chat-bubble chat-title="DownloadBot">
+                </df-messenger-chat-bubble>
+            </df-messenger>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/df-messenger.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "007a311b-7853-4f29-8155-6d7142f8c16a",
+  "displayName": "sign_url",
+  "form": {
+  
+  },
+  "entryFulfillment": {
+    "messages": [ {
+      "payload": {
+        "richContent": [ [ {
+          "anchor": {
+            "href": "$session.params.url"
+          },
+          "subtitle": "Click here to download it.",
+          "title": "Your file is ready",
+          "type": "info"
+        } ] ]
+      },
+      "languageCode": "en"
+    } ],
+    "webhook": "sing_url_hook",
+    "tag": "sign"
+  },
+  "description": "Signs the url and shows the results to user"
+}
